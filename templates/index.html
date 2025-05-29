@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Editor de Credenciales AWS</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .message { padding: 10px; margin-bottom: 10px; }
+        .success { background-color: #d4edda; color: #155724; }
+        .error { background-color: #f8d7da; color: #721c24; }
+        .profile { margin-bottom: 20px; padding: 10px; border: 1px solid #ccc; }
+        .profile h3 { margin: 0 0 10px; }
+        .profile p { margin: 5px 0; }
+        .profile button { margin-right: 10px; padding: 5px 10px; }
+        .delete-btn { background-color: #dc3545; color: white; border: none; cursor: pointer; }
+        .delete-btn:hover { background-color: #c82333; }
+        .edit-btn { background-color: #007bff; color: white; border: none; cursor: pointer; }
+        .edit-btn:hover { background-color: #0056b3; }
+        .kubeconfig-btn { background-color: #17a2b8; color: white; border: none; cursor: pointer; }
+        .kubeconfig-btn:hover { background-color: #138496; }
+        .add-profile { margin-top: 20px; padding: 10px; border: 1px solid #ccc; }
+        .add-profile label { display: block; margin: 5px 0; }
+        .add-profile textarea { width: 100%; padding: 5px; height: 100px; font-family: monospace; }
+        .add-profile button { padding: 10px 20px; background-color: #28a745; color: white; border: none; cursor: pointer; }
+        .add-profile button:hover { background-color: #218838; }
+    </style>
+</head>
+<body>
+    <h1>Editor de Credenciales AWS</h1>
+    
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="message {{ category }}">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+    
+    <h2>Perfiles</h2>
+    {% if credentials %}
+        {% for profile in credentials.keys() %}
+            <div class="profile">
+                <h3>{{ profile }}</h3>
+                <p><strong>Clúster Configurado:</strong> {{ kubeconfig.get(profile, 'N/A') }}</p>
+                <form method="POST" action="/delete/{{ profile }}" style="display:inline;">
+                    <button type="submit" class="delete-btn">Borrar</button>
+                </form>
+                <a href="/edit/{{ profile }}"><button class="edit-btn">Editar</button></a>
+                <a href="/create-kubeconfig/{{ profile }}"><button class="kubeconfig-btn">Crear K8S config</button></a>
+            </div>
+        {% endfor %}
+    {% else %}
+        <p>No se encontraron perfiles.</p>
+    {% endif %}
+    
+    <div class="add-profile">
+        <h3>Agregar Nuevo Perfil</h3>
+        <form method="POST" action="/add">
+            <label>Contenido del perfil (incluye el nombre del perfil):</label>
+            <textarea name="profile_content" placeholder="[profile_name]\naws_access_key_id=AKIA...\naws_secret_access_key=wJalrX...\naws_session_token=FQoGZXIv..."></textarea>
+            <button type="submit">Agregar Perfil</button>
+        </form>
+    </div>
+</body>
+</html>

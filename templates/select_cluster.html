@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Seleccionar Clúster EKS</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .message { padding: 10px; margin-bottom: 10px; }
+        .success { background-color: #d4edda; color: #155724; }
+        .error { background-color: #f8d7da; color: #721c24; }
+        .form-container { padding: 10px; border: 1px solid #ccc; }
+        label { display: block; margin: 5px 0; }
+        select { width: 100%; padding: 5px; }
+        button { padding: 10px 20px; background-color: #007bff; color: white; border: none; cursor: pointer; }
+        button:hover { background-color: #0056b3; }
+        a { text-decoration: none; }
+        .back-btn { background-color: #6c757d; }
+        .back-btn:hover { background-color: #5a6268; }
+    </style>
+</head>
+<body>
+    <h1>Seleccionar Clúster EKS para el Perfil {{ profile }}</h1>
+    
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="message {{ category }}">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+    
+    <div class="form-container">
+        <form method="POST" action="/run-kubeconfig/{{ profile }}">
+            <label>Seleccionar Clúster:</label>
+            <select name="cluster" required>
+                <option value="">-- Selecciona un clúster --</option>
+                {% for cluster in clusters %}
+                    <option value="{{ cluster }}">{{ cluster }}</option>
+                {% endfor %}
+            </select>
+            <button type="submit">Crear Kubeconfig</button>
+        </form>
+    </div>
+    
+    <a href="/"><button class="back-btn">Volver</button></a>
+</body>
+</html>
