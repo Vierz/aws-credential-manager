@@ -13,6 +13,7 @@
         .profile h3 { margin: 0 0 10px; }
         .profile p { margin: 5px 0; }
         .profile ul { margin: 5px 0; padding-left: 20px; }
+        .profile li { display: flex; align-items: center; margin-bottom: 5px; }
         .profile button { margin-right: 10px; padding: 5px 10px; }
         .delete-btn { background-color: #dc3545; color: white; border: none; cursor: pointer; }
         .delete-btn:hover { background-color: #c82333; }
@@ -20,6 +21,8 @@
         .edit-btn:hover { background-color: #0056b3; }
         .kubeconfig-btn { background-color: #17a2b8; color: white; border: none; cursor: pointer; }
         .kubeconfig-btn:hover { background-color: #138496; }
+        .k9s-btn { background-color: #ffc107; color: black; border: none; cursor: pointer; padding: 3px 8px; font-size: 12px; }
+        .k9s-btn:hover { background-color: #e0a800; }
         .add-profile { margin-top: 20px; padding: 10px; border: 1px solid #ccc; }
         .add-profile label { display: block; margin: 5px 0; }
         .add-profile textarea { width: 100%; padding: 5px; height: 100px; font-family: monospace; }
@@ -43,11 +46,14 @@
         {% for profile in credentials.keys() %}
             <div class="profile">
                 <h3>{{ profile }}</h3>
-                <p><strong>Clusters Configurados:</strong></p>
+                <p><strong>Clusters Configured:</strong></p>
                 {% if profile in kubeconfig and kubeconfig[profile] %}
                     <ul>
                         {% for cluster in kubeconfig[profile] %}
-                            <li>{{ cluster }}</li>
+                            <li>
+                                {{ cluster }}
+                                <a href="/run-k9s/{{ profile }}/{{ cluster | urlencode }}"><button class="k9s-btn">K9S</button></a>
+                            </li>
                         {% endfor %}
                     </ul>
                 {% else %}

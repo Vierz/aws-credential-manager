@@ -4,6 +4,7 @@ import os
 import subprocess
 import json
 import yaml
+import shlex
 
 app = Flask(__name__)
 app.secret_key = 'supersecretkey'  # Necesario para flash messages
@@ -247,6 +248,47 @@ def run_kubeconfig(profile):
     
     except Exception as e:
         flash(f'Error al ejecutar update-kubeconfig: {str(e)}', 'error')
+        return redirect('/')
+
+@app.route('/run-k9s/<profile>/<path:cluster>', methods=['GET'])
+def run_k9s(profile, cluster):
+    credentials = read_credentials()
+    
+    if profile not in credentials:
+        flash(f'El perfil {profile} no existe.', 'error')
+        return redirect('/')
+    
+    try:
+        # El context_name es profile@cluster_name (extraer cluster_name del ARN)
+        cluster_name = cluster.split('/')[-1] if '/' in cluster else cluster
+        context = f"{profile}@{cluster_name}"
+        
+        # Verificar si k9s está instalado
+        if subprocess.run(['which', 'k9s'], capture_output=True).returncode != 0:
+            flash('k9s no está instalado. Instálalo con: brew install k9s', 'error')
+            return redirect('/')
+        
+        # Comando para abrir Terminal y ejecutar k9s
+        k9s_command = f"k9s --context {shlex.quote(context)}"
+        apple_script = f'''
+        tell application "Terminal"
+            activate
+            do script "{k9s_command}"
+        end tell
+        '''
+        cmd = ['osascript', '-e', apple_script]
+        
+        result = subprocess.run(cmd, capture_output=True, text=True)
+        
+        if result.returncode == 0:
+            flash(f'Terminal abierta con k9s para el clúster {cluster}.', 'success')
+        else:
+            flash(f'Error al abrir k9s: {result.stderr}', 'error')
+        
+        return redirect('/')
+    
+    except Exception as e:
+        flash(f'Error al ejecutar k9s: {str(e)}', 'error')
         return redirect('/')
 
 if __name__ == '__main__':
