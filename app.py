@@ -38,10 +38,17 @@ def read_kubeconfig():
             with open(KUBE_CONFIG_FILE, 'r') as file:
                 config = yaml.safe_load(file)
                 if config and 'contexts' in config:
-                    for context in config['contexts']:
+                    for context in config.get('contexts', []):
                         context_name = context['name']
-                        # Asumimos que el alias del perfil se usó como context_name
-                        kubeconfig[context_name] = context['context']['cluster']
+                        cluster = context['context']['cluster']
+                        # Buscar perfiles en el context_name (formato: profile@cluster)
+                        for profile in read_credentials().keys():
+                            if context_name.startswith(f"{profile}@"):
+                                if profile not in kubeconfig:
+                                    kubeconfig[profile] = []
+                                # Usar el ARN completo del clúster
+                                if cluster not in kubeconfig[profile]:
+                                    kubeconfig[profile].append(cluster)
         return kubeconfig
     except Exception as e:
         flash(f'Error al leer el archivo kubeconfig: {str(e)}', 'error')
@@ -220,13 +227,14 @@ def run_kubeconfig(profile):
         return redirect(f'/create-kubeconfig/{profile}')
     
     try:
-        # Ejecutar aws eks update-kubeconfig
+        # Ejecutar aws eks update-kubeconfig con un alias único
+        alias = f"{profile}@{cluster}"
         cmd = [
             'aws', 'eks', 'update-kubeconfig',
             '--region', 'us-east-1',
             '--name', cluster,
             '--profile', profile,
-            '--alias', profile
+            '--alias', alias
         ]
         result = subprocess.run(cmd, capture_output=True, text=True)
         
